@@ -1,0 +1,25 @@
+{
+  "name": "node-spider",
+  "version": "1.0.0",
+  "description": "use node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node",
+    "spider",
+    "zhengfang"
+  ],
+  "author": "vicient",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^2.1.4",
+    "bufferhelper": "^0.2.1",
+    "iconv": "^2.2.1",
+    "iconv-lite": "^0.4.15",
+    "mysql": "^2.12.0",
+    "promise": "^7.1.1",
+    "superagent": "^3.3.1"
+  }
+}
