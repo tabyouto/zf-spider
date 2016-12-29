@@ -60,7 +60,7 @@ let info = {
             that.postUrl = 'http://'+ that.initUrl +'/(' + that.middleUrl + ')/default2.aspx';
             let $ = cheerio.load(res.text);
             that.loginInfo.__VIEWSTATE = $('[name=__VIEWSTATE]').val() //获取viewState
-            that.loginInfo.TextBox1 = '1203050132';
+            that.loginInfo.TextBox1 = '';
             that.loginInfo.TextBox2 = '123456';
             console.log('----初始化获得middleUrl----');
             callback && callback(null,'');
