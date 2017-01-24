@@ -12,7 +12,7 @@ let superagent = require('superagent'),  //
     sqlAction = require("./mysql.js"), //mysql 配置文件
     info = require('./_base.js'); //基本配置信息
 var event = require('../event/_event');
-
+var clients = require('../store/store');
 
 /**
  * 查询学号是否存在
