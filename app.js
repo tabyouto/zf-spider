@@ -20,13 +20,14 @@ var app = express();
 var common = require('./common/common');
 
 // 创建Redis客户端
-var redisClient = redis.createClient(6379, '127.0.0.1', {auth_pass: 'oh~shit'});
+var redisClient = redis.createClient(6379, '127.0.0.1', {auth_pass: ''});
 // 设置Express的Session存储中间件
 app.use(expressSession({
     store: new RedisStore({client: redisClient}),
     secret: 'mychyunique',
     name: 'zfisbad',
     cookie: {
+        domain: '.test1.com',
         maxAge: 1 * 24 * 3600 * 1000
     }, //失效时间 1天
     resave: false,
@@ -54,7 +55,7 @@ var server = app.listen(9000, function () {
     console.log('server start');
 });
 
-sockect(server);
+sockect(server,redisClient);
 
 
 
@@ -75,10 +76,13 @@ app.use(function (err, req, res, next) {
     // render the error page
     res.status(err.status || 500 || 400);
     console.log('错误信息',err.message);
-    if(err.message == '1111') {
-        common.showResult(res, 200, '', {}, '用户未登录', '1111');
-    }else {
-        common.showResult(res, 200, '', {}, 'error', '1111');
+    switch (err.status) {
+        case 1112:
+            common.showResult(res, 200, '', {}, '抓取失败', '1112');
+            break;
+        case 1111:
+            common.showResult(res, 200, '', {}, '用户未登录', '1111');
+            break;
     }
 });
 

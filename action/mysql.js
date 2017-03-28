@@ -35,7 +35,8 @@ var sqlAction = {
             } else {
                 conn.query(sql, x, function (qerr, vals, fields) {
                     conn.release();
-                    var _res = JSON.parse(JSON.stringify(vals));
+                    console.log(vals);
+                    var _res = vals ? JSON.parse(JSON.stringify(vals)) : '';
                     callback(qerr, _res, fields);
                 });
             }

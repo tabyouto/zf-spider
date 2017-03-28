@@ -5,6 +5,6 @@
 
 'use strict';
 
-var  clients = [];
+var  clients = {};
 
 exports.clients = clients;
