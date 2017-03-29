@@ -25,7 +25,7 @@ router.post('/login', function(req, res, next) {
             //}else {
                 var action = new base();
                 self = action;
-                action.actions.doLogin(req,callback,next);
+                action.doLogin(req,callback,next);
             //}
         },
         finish: ['start', function (results, callback) { //return true 自动执行下一步
@@ -42,9 +42,15 @@ router.post('/login', function(req, res, next) {
                     tableHtml: self ? self._info.scheduleResult.tableHtml: ''
                 },'success',1);
             }else {
-                common.showResult(res,200,'',{
-                    status: 'init'
-                },'success',1);
+                if(self._info.scoreArr.length==0) {
+                    common.showResult(res,200,'',{
+                        status: 'init'
+                    },'success',1);
+                }else {
+                    common.showResult(res,200,'',{
+                        scoreData: self._info.scoreArr
+                    },'success',1);
+                }
             }
             console.log('请求结束');
         }]
@@ -59,7 +65,7 @@ router.post('/fetchSchedule', function(req, res, next) {
             //if(req.session.info) {
                 var action = new base();
                 self = action;
-                action.actions.fetchSpecificSchedule(req,callback,next);
+                action.fetchSpecificSchedule(req,callback,next);
                 //actions.fetchSpecificSchedule(req,callback,next);
             //}else {
             //    next(new Error('1111'));
@@ -82,7 +88,7 @@ router.post('/fetchScore', function(req, res, next) {
             //if(req.session.info) {
                 var action = new base();
                 self = action;
-                action.actions.fetchSpecificScore(req,callback,next);
+                action.fetchSpecificScore(req,callback,next);
             //}else {
             //    next(new Error('1111'));
             //}

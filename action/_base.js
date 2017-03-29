@@ -1,6 +1,8 @@
 /**
- * author: chihaiyue
+ * author: vicient
  * createTime:  2017/1/19.
+ *
+ * 登录跳转环节需要的参数
  */
 
 'use strict';
@@ -45,7 +47,8 @@ let info = {
     scheduleResult: {},
     degreeName: [],
     degreeId: [],
-    courseTempArr: [] //临时保存抓取到的数组
+    courseTempArr: [], //临时保存抓取到的数组
+    scoreArr: [] //历年成绩result
 };
 
 module.exports = info;
