@@ -48,7 +48,8 @@ let info = {
     degreeName: [],
     degreeId: [],
     courseTempArr: [], //临时保存抓取到的数组
-    scoreArr: [] //历年成绩result
+    scoreArr: [], //历年成绩result
+    degreeInfo: ''//学位课列表+ 总学位分
 };
 
 module.exports = info;

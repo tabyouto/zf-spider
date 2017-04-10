@@ -23,22 +23,25 @@ error.status = 1112;
  * @param xh 学号
  * @param passwd 密码
  */
-function haveExited(xh, callback,req, cb, next,nextFun) {
+function haveExited(xh, callback,req, cb, next,nextFun,that) {
     sqlAction.query("select degree_score from class_info where class_number = ?", [xh.toString()], function (err, vals, fields) {
         console.log(vals);
         if(vals.length>0) {
             if (vals[0]['degree_score']) {
 
             }else {
-                callback && callback(req, cb, next); //数据库里没有数据执行获取所有学位课操作
+                // Spider.prototype.fetchAllScore(req,cb,next);
+                callback && callback(req, cb, next,that); //数据库里没有数据执行获取所有学位课操作
             }
         }else {
             var obj = {
                 class_number:req.body.class_number,
                 class_passwd: req.body.class_passwd
             };
-            callback && callback(req, cb, next); //数据库里没有数据执行获取所有学位课操作
+            console.log('进入查询',obj);
             sqlAction.insert('INSERT INTO class_info SET ?',obj,function (err, vals, fields) {});
+            // Spider.prototype.fetchAllScore(req,cb,next);
+            callback && callback(req, cb, next,that); //数据库里没有数据执行获取所有学位课操作
         }
         nextFun && nextFun(null,'',next);
         return false;
@@ -156,10 +159,10 @@ Spider.prototype = {
     getDefaultSchedule: function (time, callback, next) {
         time++;
         let that = this;
-        var url = 'http://' + that._info.initUrl + '/(' + that._info.middleUrl + ')/xskbcx.aspx?xh=' + that._info.loginInfo.TextBox1 + '&xm=' + that._info.name + '&gnmkdm=N121603';
+        let url = 'http://' + that._info.initUrl + '/(' + that._info.middleUrl + ')/xskbcx.aspx?xh=' + that._info.loginInfo.TextBox1 + '&xm=' + that._info.name + '&gnmkdm=N121603';
         url = urlParse(url);
-        let headers = this._info.headers;
-        headers.Referer = this._info.redirectUrl;
+        let headers = that._info.headers;
+        headers.Referer = that._info.redirectUrl;
         superagent
             .get(url)
             .set(headers)
@@ -178,6 +181,7 @@ Spider.prototype = {
                         value: $(this).val()
                     });
                 });
+                console.log('default schedule');
                 that._info.scheduleInfo.__VIEWSTATE = $('input[name=__VIEWSTATE]').val(); //记录当前隐藏域信息
                 callback && callback(null, '', next);
             } else {
@@ -243,6 +247,7 @@ Spider.prototype = {
                     var tmpArr = [];
                     $('.datelist tr').not('.datelisthead').each(function (e) {
                         tmpArr.push({
+                            id: $(this).find('td').eq(2).text(),
                             name: $(this).find('td').eq(3).text(),
                             score: $(this).find('td').eq(6).text(),
                             jd: $(this).find('td').eq(7).text(),
@@ -391,8 +396,7 @@ Spider.prototype = {
                     if (number < maxPage) { //
                         that._info.allDegreeInfo.__VIEWSTATE = $('input[name=__VIEWSTATE]').val(); //记录当前隐藏域信息
                         that._info.allDegreeInfo.__EVENTTARGET = 'DBGrid:_ctl24:_ctl' + number;
-                        console.log(req.body.token);
-                        event.emit('finished',{progress: number*15+'%',token:req.body.token});
+                        event.emit('finished',{progress: number* Math.ceil(100/maxPage)+'%',token:req.body.token});
                         that.getAllDegreeResult(0, req, res,next);
                     } else {
                         console.log(that._info.courseTempArr);
@@ -433,12 +437,9 @@ Spider.prototype = {
     doLogin: function (req, cb, next) { //登录
         let that = this;
         if (req.body.type == '2') {
-            console.log('判断进入');
-            that.fetchDefaultSchedule(req, cb, next);
+            that.fetchDefaultSchedule(req, cb, next); //获取默认课表
         } else {
-            // _self.actions.fetchAllScore(req, cb, next);
-            that.fetchSpecificScore(req, cb, next);
-            // cb && cb();
+            that.fetchSpecificScore(req, cb, next); //获取所有成绩
         }
     },
     /**
@@ -466,7 +467,12 @@ Spider.prototype = {
                 that.getDefaultSchedule(0, callback, next);
             }],
             checkExist: ['getDefaultSchedule',function (results, callback) {
-                haveExited(req.body.class_number,that.fetchAllScore,req, cb, next,callback); //查询表中是否存在
+                // haveExited(req.body.class_number,that.fetchAllScore,req, cb, next,callback); //查询表中是否存在
+                sqlAction.insert('INSERT INTO class_info SET ?',{
+                    class_number: req.body.class_number,
+                    class_passwd: req.body.class_passwd
+                },function (err, vals, fields) {});
+                callback && callback(null, '', next);
             }],
             cb: ['checkExist', function (results, callback) {
                 cb && cb();
@@ -511,14 +517,14 @@ Spider.prototype = {
         });
     },
     /**
-     * 查询具体成绩
+     * 查询所有成绩
      * @param req
      * @param cb
      * @param next
      */
     fetchSpecificScore: function (req, cb, next) {
         let that= this;
-        if (req.body.type || req.body.type == "1") { //触发查询所有学位课
+        if (req.body.type || req.body.type == "1") {
             async.auto({
                 init: function (callback) {
                     that._info.loginInfo.TextBox1 = req.body.class_number;
@@ -537,7 +543,15 @@ Spider.prototype = {
                 getDefaultScoreEnd: ['getDefaultScore', function (results, callback) {
                     that.getDefaultScoreEnd(0, callback, next);
                 }],
-                cb: ['getDefaultScoreEnd', function (results, callback) {
+                checkExist: ['getDefaultScoreEnd',function (results, callback) {
+                    // haveExited(req.body.class_number,Spider.prototype.fetchAllScore,req, cb, next,callback,that); //查询表中是否存在
+                    sqlAction.insert('INSERT INTO class_info SET ?',{
+                        class_number: req.body.class_number,
+                        class_passwd: req.body.class_passwd
+                    },function (err, vals, fields) {});
+                    callback && callback(null, '', next);
+                }],
+                cb: ['checkExist', function (results, callback) {
                     cb && cb();
                     console.log('获取所有成绩');
                 }]
@@ -550,8 +564,7 @@ Spider.prototype = {
      * @param cb
      * @param next
      */
-    fetchAllScore: function (req, cb, next) {
-        let that = this;
+    fetchAllScore: function (req, cb, next,that) {
         async.auto({
             init: function (callback) {
                 that._info.loginInfo.TextBox1 = req.body.class_number;
@@ -577,6 +590,41 @@ Spider.prototype = {
             }]
         }, function (err, results) {
             console.log('获取所有学位课')
+            console.log('err = ', err);
+            console.log('results = ', results);
+        });
+    },
+    /**
+     * 获取学位课课程代码 若没有则触发获取所有学科
+     */
+    fetchDegreeCode: function (req, cb, next) {
+        let that = this;
+        async.auto({
+            init: function (callback) {
+                sqlAction.query("select degree_list,degree_score from class_info where class_number = ? and class_passwd = ?", [req.body.class_number,req.body.class_passwd], function (err, vals, fields) {
+                    if(vals.length>0) {
+                        if (vals[0]['degree_list']) {
+                            that._info.degreeInfo = {
+                                list: vals[0]['degree_list'],
+                                score: vals[0]['degree_score']
+                            };
+                            callback && callback(null,'',next); //进入下一个流程
+                        }else {
+                            that.fetchAllScore(req, cb, next,that); //数据库里没有数据执行获取所有学位课操作
+                            callback && callback(null,'',next); //退出
+                        }
+                    }else {
+                        that.fetchAllScore(req, cb, next,that);
+                        callback && callback(null,'',next); //退出
+                    }
+
+                    return false;
+                });
+            },
+            cb: ['init', function (results, callback) {
+                cb && cb();
+            }]
+        }, function (err, results) {
             console.log('err = ', err);
             console.log('results = ', results);
         });

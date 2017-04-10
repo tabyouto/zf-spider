@@ -12,7 +12,7 @@ module.exports = function(server,redisClient) {
         //通知客户端进度
         if(!event._events['finished']) { //如果没有注册则注册
             event.on('finished', function(obj) {
-                console.log('event 通知');
+                console.log('event 通知',obj);
                 redisClient.get(obj.token,function(err,reply) {
                     console.log('最新socket-id',reply);
                     io.to(reply).emit('finishAllDegree',obj.progress); //获取token 对应的 socketId

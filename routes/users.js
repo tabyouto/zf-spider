@@ -82,16 +82,12 @@ router.post('/fetchSchedule', function(req, res, next) {
 
 //获取绩点
 router.post('/fetchScore', function(req, res, next) {
-    var self = ''
+    var self = '';
     async.auto({
         start: function (callback) {
-            //if(req.session.info) {
-                var action = new base();
-                self = action;
-                action.fetchSpecificScore(req,callback,next);
-            //}else {
-            //    next(new Error('1111'));
-            //}
+            var action = new base();
+            self = action;
+            action.fetchSpecificScore(req,callback,next);
         },
         finish: ['start', function (results, callback) { //return true 自动执行下一步
             common.showResult(res,200,'',{
@@ -110,6 +106,32 @@ router.post('/fen',function (req,res,next) {
         token: tools.md5(new Date().getTime().toString())
     },'success',1);
 });
+
+/**
+ * 获取该学生的学位课 课程号
+ */
+router.post('/cal',function (req, res, next) {
+    let self = '';
+    async.auto({
+        start: function (callback) {
+            var action = new base();
+            self = action;
+            action.fetchDegreeCode(req,callback,next);
+        },
+        finish: ['start', function (results, callback) { //return true 自动执行下一步
+            if(self._info.degreeInfo.hasOwnProperty('score')) {
+                common.showResult(res,200,'',{
+                    info: self._info.degreeInfo
+                },'success',1);
+                console.log('finish');
+            }else {
+                common.showResult(res,200,'',{
+                    status: 'init'
+                },'success',1);
+            }
+        }]
+    });
+})
 
 //
 
